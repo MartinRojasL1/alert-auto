@@ -116,6 +116,9 @@ def fetch_hiwi(pages):
 
 
 def send_mail(cfg, subject, text):
+    missing = [k for k in ("to", "from", "app_password") if not cfg.get(k)]
+    if missing:
+        raise RuntimeError(f"mail settings missing: {missing} (check secrets HIWI_TO, HIWI_FROM, GMAIL_APP_PASSWORD)")
     msg = MIMEText(text, "plain", "utf-8")
     msg["Subject"] = subject
     msg["From"] = cfg["from"]
@@ -180,4 +183,6 @@ if __name__ == "__main__":
         main()
     except Exception as exc:
         log(f"ERROR: {exc!r}")
+        if os.environ.get("GITHUB_ACTIONS"):
+            print(f"::error::{exc!r}")  # shows up as a run annotation
         sys.exit(1)
